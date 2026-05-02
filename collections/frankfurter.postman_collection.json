@@ -1,0 +1,804 @@
+{
+  "info": {
+    "name": "Frankfurter API - Test Suite",
+    "_postman_id": "frankfurter-api-test-suite-v1",
+    "description": "Automated test suite for Frankfurter Exchange Rates API v2.\nCovers: currencies, latest rates, historical rates, time series and single rate pair.\n\nBase URL: https://api.frankfurter.dev/v2\nNo authentication required.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 - Currencies",
+      "description": "Validates the /currencies and /currency endpoints.",
+      "item": [
+        {
+          "name": "TC-01 | GET /currencies - Lista completa de monedas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/currencies",
+              "host": ["{{baseUrl}}"],
+              "path": ["currencies"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type es application/json', function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('El body es un array no vacío', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.be.an('array');",
+                  "    pm.expect(body.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test('Cada elemento tiene iso_code y name', function () {",
+                  "    const body = pm.response.json();",
+                  "    body.forEach(function(currency) {",
+                  "        pm.expect(currency).to.have.property('iso_code');",
+                  "        pm.expect(currency).to.have.property('name');",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test('Contiene monedas clave: USD, EUR, MXN, BRL', function () {",
+                  "    const body = pm.response.json();",
+                  "    const codes = body.map(function(c) { return c.iso_code; });",
+                  "    pm.expect(codes).to.include('USD');",
+                  "    pm.expect(codes).to.include('EUR');",
+                  "    pm.expect(codes).to.include('MXN');",
+                  "    pm.expect(codes).to.include('BRL');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-02 | GET /currencies?scope=all - Incluye monedas archivadas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/currencies?scope=all",
+              "host": ["{{baseUrl}}"],
+              "path": ["currencies"],
+              "query": [{ "key": "scope", "value": "all" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('scope=all retorna más monedas que la lista base', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.be.an('array');",
+                  "    pm.expect(body.length).to.be.above(30);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-03 | GET /currency/USD - Detalle de moneda específica",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/currency/USD",
+              "host": ["{{baseUrl}}"],
+              "path": ["currency", "USD"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Retorna un objeto con datos de la moneda', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.be.an('object');",
+                  "    pm.expect(Object.keys(body).length).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-04 | GET /currency/INVALID - Código de moneda inexistente",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/currency/INVALID",
+              "host": ["{{baseUrl}}"],
+              "path": ["currency", "INVALID"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404 para moneda inexistente', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test('Body contiene mensaje de error descriptivo', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property('message');",
+                  "    pm.expect(body.message).to.be.a('string').and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 - Latest Rates",
+      "description": "Validates current exchange rates.",
+      "item": [
+        {
+          "name": "TC-05 | GET /rates - Tasas actuales con base default (EUR)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rates",
+              "host": ["{{baseUrl}}"],
+              "path": ["rates"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('El body es un array no vacío', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.be.an('array');",
+                  "    pm.expect(body.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.test('Cada elemento tiene date, base, quote y rate', function () {",
+                  "    const body = pm.response.json();",
+                  "    const item = body[0];",
+                  "    pm.expect(item).to.have.property('date');",
+                  "    pm.expect(item).to.have.property('base');",
+                  "    pm.expect(item).to.have.property('quote');",
+                  "    pm.expect(item).to.have.property('rate');",
+                  "});",
+                  "",
+                  "pm.test('Base default es EUR', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body[0].base).to.equal('EUR');",
+                  "});",
+                  "",
+                  "pm.test('Los rates son números positivos', function () {",
+                  "    const body = pm.response.json();",
+                  "    body.forEach(function(item) {",
+                  "        pm.expect(item.rate).to.be.a('number').and.above(0);",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test('El campo date tiene formato YYYY-MM-DD', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body[0].date).to.match(/^\\d{4}-\\d{2}-\\d{2}$/);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-06 | GET /rates?base=USD - Tasas con base USD",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rates?base=USD",
+              "host": ["{{baseUrl}}"],
+              "path": ["rates"],
+              "query": [{ "key": "base", "value": "USD" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Todos los items tienen base USD', function () {",
+                  "    const body = pm.response.json();",
+                  "    body.forEach(function(item) {",
+                  "        pm.expect(item.base).to.equal('USD');",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test('Ningún item tiene quote USD (no se cotiza contra sí mismo)', function () {",
+                  "    const body = pm.response.json();",
+                  "    body.forEach(function(item) {",
+                  "        pm.expect(item.quote).to.not.equal('USD');",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-07 | GET /rates?base=USD&quotes=MXN,BRL - Filtrar monedas específicas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rates?base=USD&quotes=MXN,BRL",
+              "host": ["{{baseUrl}}"],
+              "path": ["rates"],
+              "query": [
+                { "key": "base", "value": "USD" },
+                { "key": "quotes", "value": "MXN,BRL" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Retorna exactamente 2 items: MXN y BRL', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.lengthOf(2);",
+                  "    const quotes = body.map(function(i) { return i.quote; });",
+                  "    pm.expect(quotes).to.include('MXN');",
+                  "    pm.expect(quotes).to.include('BRL');",
+                  "});",
+                  "",
+                  "pm.test('MXN mayor a 1 respecto al USD (lógica de negocio)', function () {",
+                  "    const body = pm.response.json();",
+                  "    const mxn = body.find(function(i) { return i.quote === 'MXN'; });",
+                  "    pm.expect(mxn.rate).to.be.above(1);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-08 | GET /rates?base=INVALID - Base inválida",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rates?base=INVALID",
+              "host": ["{{baseUrl}}"],
+              "path": ["rates"],
+              "query": [{ "key": "base", "value": "INVALID" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status de error para base inválida (400 o 404 o 422)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 404, 422]);",
+                  "});",
+                  "",
+                  "pm.test('Body contiene mensaje de error', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property('message');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 - Historical Rates",
+      "description": "Validates exchange rates for specific past dates.",
+      "item": [
+        {
+          "name": "TC-09 | GET /rates?date=2024-01-15 - Fecha histórica válida (lunes)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rates?date=2024-01-15",
+              "host": ["{{baseUrl}}"],
+              "path": ["rates"],
+              "query": [{ "key": "date", "value": "2024-01-15" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Todos los items tienen la fecha solicitada', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.be.an('array').and.have.lengthOf.above(0);",
+                  "    body.forEach(function(item) {",
+                  "        pm.expect(item.date).to.equal('2024-01-15');",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test('Los rates son números positivos', function () {",
+                  "    const body = pm.response.json();",
+                  "    body.forEach(function(item) {",
+                  "        pm.expect(item.rate).to.be.a('number').and.above(0);",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-10 | GET /rates?date=2024-01-13 - Consulta en fin de semana devuelve datos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rates?date=2024-01-13",
+              "host": ["{{baseUrl}}"],
+              "path": ["rates"],
+              "query": [{ "key": "date", "value": "2024-01-13" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 para consulta en fin de semana', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('La API responde con datos aunque el mercado esté cerrado', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.be.an('array').and.have.lengthOf.above(0);",
+                  "});",
+                  "",
+                  "pm.test('Los rates devueltos son números positivos', function () {",
+                  "    const body = pm.response.json();",
+                  "    body.forEach(function(item) {",
+                  "        pm.expect(item.rate).to.be.a('number').and.above(0);",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-11 | GET /rates?date=1999-01-04 - Primer dato histórico disponible",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rates?date=1999-01-04",
+              "host": ["{{baseUrl}}"],
+              "path": ["rates"],
+              "query": [{ "key": "date", "value": "1999-01-04" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 para el primer dato histórico del BCE', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('La fecha retornada es 1999-01-04', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.be.an('array').and.have.lengthOf.above(0);",
+                  "    pm.expect(body[0].date).to.equal('1999-01-04');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-12 | GET /rates?date=1990-01-01 - Fecha fuera del rango histórico",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rates?date=1990-01-01",
+              "host": ["{{baseUrl}}"],
+              "path": ["rates"],
+              "query": [{ "key": "date", "value": "1990-01-01" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 para fecha fuera de rango', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Retorna array vacío para fecha sin datos', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.be.an('array');",
+                  "    pm.expect(body.length).to.equal(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-13 | GET /rates?date=9999-01-01 - Fecha futura inválida",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rates?date=9999-01-01",
+              "host": ["{{baseUrl}}"],
+              "path": ["rates"],
+              "query": [{ "key": "date", "value": "9999-01-01" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 para fecha futura', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Retorna array vacío para fecha futura sin datos', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.be.an('array');",
+                  "    pm.expect(body.length).to.equal(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 - Time Series",
+      "description": "Validates exchange rates over a date range.",
+      "item": [
+        {
+          "name": "TC-14 | GET /rates?from=2024-01-01&to=2024-01-31 - Serie temporal de un mes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rates?from=2024-01-01&to=2024-01-31&quotes=USD",
+              "host": ["{{baseUrl}}"],
+              "path": ["rates"],
+              "query": [
+                { "key": "from", "value": "2024-01-01" },
+                { "key": "to", "value": "2024-01-31" },
+                { "key": "quotes", "value": "USD" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Retorna un array con múltiples entradas (días hábiles)', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.be.an('array');",
+                  "    pm.expect(body.length).to.be.above(1);",
+                  "});",
+                  "",
+                  "pm.test('Cada item tiene date, base, quote y rate', function () {",
+                  "    const body = pm.response.json();",
+                  "    body.forEach(function(item) {",
+                  "        pm.expect(item).to.have.property('date');",
+                  "        pm.expect(item).to.have.property('base');",
+                  "        pm.expect(item).to.have.property('quote');",
+                  "        pm.expect(item).to.have.property('rate');",
+                  "    });",
+                  "});",
+                  "",
+                  "pm.test('Las fechas están dentro del rango solicitado', function () {",
+                  "    const body = pm.response.json();",
+                  "    body.forEach(function(item) {",
+                  "        pm.expect(item.date >= '2024-01-01').to.be.true;",
+                  "        pm.expect(item.date <= '2024-01-31').to.be.true;",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-15 | GET /rates?from=2024-01-01&to=2024-01-31&quotes=USD - Serie filtrada por moneda",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rates?from=2024-01-01&to=2024-01-31&quotes=USD",
+              "host": ["{{baseUrl}}"],
+              "path": ["rates"],
+              "query": [
+                { "key": "from", "value": "2024-01-01" },
+                { "key": "to", "value": "2024-01-31" },
+                { "key": "quotes", "value": "USD" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Todos los items tienen quote USD', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.be.an('array').and.have.lengthOf.above(0);",
+                  "    body.forEach(function(item) {",
+                  "        pm.expect(item.quote).to.equal('USD');",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-16 | GET /rates?from=2024-01-31&to=2024-01-01 - Rango de fechas invertido",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rates?from=2024-01-31&to=2024-01-01&quotes=USD",
+              "host": ["{{baseUrl}}"],
+              "path": ["rates"],
+              "query": [
+                { "key": "from", "value": "2024-01-31" },
+                { "key": "to", "value": "2024-01-01" },
+                { "key": "quotes", "value": "USD" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 para rango invertido', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Retorna array vacío para rango invertido', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.be.an('array');",
+                  "    pm.expect(body.length).to.equal(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-17 | GET /rates?from=2024-01-01&to=2024-01-07 - Serie temporal de una semana",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rates?from=2024-01-01&to=2024-01-07&quotes=USD",
+              "host": ["{{baseUrl}}"],
+              "path": ["rates"],
+              "query": [
+                { "key": "from", "value": "2024-01-01" },
+                { "key": "to", "value": "2024-01-07" },
+                { "key": "quotes", "value": "USD" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Retorna múltiples días hábiles de la semana', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.be.an('array');",
+                  "    pm.expect(body.length).to.be.above(1);",
+                  "});",
+                  "",
+                  "pm.test('Las fechas están dentro del rango solicitado', function () {",
+                  "    const body = pm.response.json();",
+                  "    body.forEach(function(item) {",
+                  "        pm.expect(item.date >= '2024-01-01').to.be.true;",
+                  "        pm.expect(item.date <= '2024-01-07').to.be.true;",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 - Single Rate",
+      "description": "Validates the /rate/{base}/{quote} endpoint.",
+      "item": [
+        {
+          "name": "TC-18 | GET /rate/EUR/USD - Par de monedas válido",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rate/EUR/USD",
+              "host": ["{{baseUrl}}"],
+              "path": ["rate", "EUR", "USD"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Respuesta contiene el campo rate', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property('rate');",
+                  "});",
+                  "",
+                  "pm.test('El rate es un número positivo', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.rate).to.be.a('number').and.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-19 | GET /rate/USD/MXN - Lógica de negocio: MXN mayor a 1 por USD",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rate/USD/MXN",
+              "host": ["{{baseUrl}}"],
+              "path": ["rate", "USD", "MXN"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('1 USD equivale a más de 1 MXN (lógica de negocio)', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.rate).to.be.above(1);",
+                  "});",
+                  "",
+                  "pm.test('El rate USD/MXN es razonable (entre 5 y 100)', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body.rate).to.be.within(5, 100);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-20 | GET /rate/EUR/EUR - Mismo par de monedas (inválido)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rate/EUR/EUR",
+              "host": ["{{baseUrl}}"],
+              "path": ["rate", "EUR", "EUR"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status de error para mismo par de monedas (400, 404 o 422)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 404, 422]);",
+                  "});",
+                  "",
+                  "pm.test('Body contiene mensaje de error', function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property('message');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

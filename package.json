@@ -1,0 +1,27 @@
+{
+  "name": "rest-api-automation-newman",
+  "version": "1.0.0",
+  "description": "Automated API test suite for Frankfurter Exchange Rates API using Newman, Allure and GitHub Actions CI/CD.",
+  "scripts": {
+    "test": "newman run collections/frankfurter.postman_collection.json --environment environments/qa.postman_environment.json --reporters cli,allure,htmlextra --reporter-allure-export allure-results --reporter-htmlextra-export results/report.html",
+    "test:cli": "newman run collections/frankfurter.postman_collection.json --environment environments/qa.postman_environment.json",
+    "report": "allure generate allure-results --clean -o allure-report && allure open allure-report"
+  },
+  "keywords": [
+    "qa",
+    "testing",
+    "api",
+    "newman",
+    "postman",
+    "allure",
+    "automation",
+    "ci-cd"
+  ],
+  "author": "Emiliano",
+  "license": "MIT",
+  "devDependencies": {
+    "newman": "^6.2.1",
+    "newman-reporter-allure": "^3.4.3",
+    "newman-reporter-htmlextra": "^1.23.1"
+  }
+}

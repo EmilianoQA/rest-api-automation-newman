@@ -1,0 +1,15 @@
+# Dependencias de Node
+node_modules/
+
+# Resultados generados por Newman y Allure
+# Estos se generan en cada ejecución, no son código
+results/
+allure-results/
+allure-report/
+
+# Archivos de sistema Mac
+.DS_Store
+
+# Variables de entorno locales con datos sensibles (si las hubiera)
+.env
+.env.local
