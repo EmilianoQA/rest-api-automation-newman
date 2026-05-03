@@ -799,6 +799,75 @@
           ]
         }
       ]
+    },
+    {
+      "name": "06 - Edge Cases",
+      "description": "Performance assertions and pending cases. Includes one intentional failure to validate response time thresholds and one skipped test for a feature not yet supported by the API.",
+      "item": [
+        {
+          "name": "TC-21 | GET /rates - Tiempo de respuesta menor a 200ms",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rates",
+              "host": ["{{baseUrl}}"],
+              "path": ["rates"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Tiempo de respuesta menor a 200ms', function () {",
+                  "    // Este threshold es estricto intencionalmente.",
+                  "    // La API responde en promedio entre 300ms y 800ms dependiendo de la red.",
+                  "    // Este test documenta que el tiempo de respuesta actual supera el umbral ideal.",
+                  "    pm.expect(pm.response.responseTime).to.be.below(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-22 | GET /rates - Autenticación con API key (pendiente)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rates",
+              "host": ["{{baseUrl}}"],
+              "path": ["rates"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Este test está pendiente de implementación.",
+                  "// Frankfurter v2 no requiere autenticación en su versión pública.",
+                  "// Cuando se implemente un tier premium con API key, este caso validará:",
+                  "// - Que una request sin API key devuelva 401",
+                  "// - Que una request con API key inválida devuelva 403",
+                  "// - Que una request con API key válida devuelva 200",
+                  "pm.test.skip('Validar autenticación con API key - pendiente de implementación', function () {",
+                  "    pm.expect(true).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }
