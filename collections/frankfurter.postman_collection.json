@@ -829,7 +829,7 @@
                   "    // Este threshold es estricto intencionalmente.",
                   "    // La API responde en promedio entre 300ms y 800ms dependiendo de la red.",
                   "    // Este test documenta que el tiempo de respuesta actual supera el umbral ideal.",
-                  "    pm.expect(pm.response.responseTime).to.be.below(100);",
+                  "    pm.expect(pm.response.responseTime).to.be.below(40;",
                   "});"
                 ]
               }
