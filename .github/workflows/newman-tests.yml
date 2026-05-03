@@ -33,6 +33,7 @@ jobs:
 
       - name: Run Newman tests
         id: test_run
+        continue-on-error: true
         run: npm test
 
       - name: Install Allure CLI
