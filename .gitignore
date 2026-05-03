@@ -13,3 +13,6 @@ allure-report/
 # Variables de entorno locales con datos sensibles (si las hubiera)
 .env
 .env.local
+
+# Notas personales de estudio
+NOTAS.md
